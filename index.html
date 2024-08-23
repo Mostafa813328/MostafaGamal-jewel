@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة الكاشير المتقدمة</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Cairo', sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            margin: 0;
+            color: #333;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+        .header img {
+            border-radius: 10px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            font-size: 18px;
+            padding: 10px 20px;
+        }
+        table {
+            margin-top: 20px;
+            font-size: 16px;
+            overflow-x: auto;
+            display: block;
+        }
+        th, td {
+            text-align: center;
+            padding: 12px;
+        }
+        th {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+        td {
+            background-color: #f9f9f9;
+        }
+        /* تصميم قسم النتيجة الجديد */
+        #resultSection {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+        }
+        #resultSection p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        #resultSection p span {
+            font-weight: bold;
+            color: #007bff;
+        }
+        #resultSection .icon {
+            margin-right: 8px;
+        }
+        #resultTitle {
+            font-size: 24px;
+            color: #333;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <!-- <h2>Mostafa Gamal</h2> -->
+        <img src="logo.png" width="150" height="150" alt="Logo">
+    </div>
+  
+    <form id="cashierForm">
+        <div class="mb-3">
+            <label for="totalAmount" class="form-label">المبلغ الإجمالي</label>
+            <input type="number" class="form-control" id="totalAmount" required>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="specialCustomerCheckbox">
+            <label class="form-check-label" for="specialCustomerCheckbox">
+                 عسكري ق.م
+            </label>
+        </div>
+        <div class="mb-3">
+            <label for="customerNumber" class="form-label">رقم العسكري ق.م</label>
+            <input type="text" class="form-control" id="customerNumber" disabled required>
+        </div>
+        <div class="mb-3">
+            <label for="orderType" class="form-label">نوع الطلب</label>
+            <select class="form-select" id="orderType">
+                <option value="كافيه">كافيه</option>
+                <option value="مطعم" disabled>مطعم - قريبا</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="invoiceSequence" class="form-label">تسلسل الفاتورة</label>
+            <input type="number" class="form-control" id="invoiceSequence" placeholder="أدخل التسلسل المبدئي" required>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="calculate()">احسب</button>
+    </form>
+    
+    <div id="resultSection">
+        <h3 id="resultTitle">الفاتورة :</h3>
+        <p id="result"></p>
+    </div>
+</div>
+
+<div class="container">
+    <h3>جدول العمليات</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>التاريخ</th>
+                <th>تسلسل الفاتورة</th>
+                <th>المبلغ قبل الضريبة</th>
+                <th>خصم</th>
+                <th>الضريبة</th>
+                <th>المبلغ النهائي</th>
+                <th>رقم العسكري ق.م</th>
+                <th>نوع الطلب</th>
+                <th>حذف</th> <!-- عمود جديد للحذف -->
+            </tr>
+        </thead>
+        <tbody id="orderTableBody">
+            <!-- سيتم إضافة العمليات هنا -->
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="8">الإجمالي</th>
+                <th id="totalSum">0.00 جنيه</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<script>
+    let totalSum = 0;
+    let invoiceSequence = 0; // الترقيم التلقائي لتسلسل الفاتورة
+
+    document.getElementById('specialCustomerCheckbox').addEventListener('change', function() {
+        const customerNumberInput = document.getElementById('customerNumber');
+        customerNumberInput.disabled = !this.checked;
+        customerNumberInput.value = ''; // Reset value when unchecked
+    });
+
+    window.onload = function() {
+        loadTableData();
+        const savedInvoiceSequence = localStorage.getItem('invoiceSequence');
+        if (savedInvoiceSequence) {
+            invoiceSequence = parseInt(savedInvoiceSequence);
+            document.getElementById('invoiceSequence').value = invoiceSequence;
+            // إعداد الحقل ليكون readonly بعد الإدخال الأول
+        }
+    };
+
+    function calculate() {
+        let invoiceSequenceInput = document.getElementById('invoiceSequence');
+        if (!invoiceSequenceInput.hasAttribute('readonly')) {
+            if (invoiceSequenceInput.value === '' || parseInt(invoiceSequenceInput.value) <= 0) {
+                alert('يرجى إدخال تسلسل الفاتورة المبدئي');
+                return;
+            }
+            invoiceSequence = parseInt(invoiceSequenceInput.value);
+            invoiceSequenceInput.setAttribute('readonly', 'readonly'); // تعيين الحقل كـ readonly بعد الإدخال
+            localStorage.setItem('invoiceSequence', invoiceSequence); // حفظ التسلسل في Local Storage
+        }
+
+        let totalAmount = parseFloat(document.getElementById('totalAmount').value);
+        let isSpecialCustomer = document.getElementById('specialCustomerCheckbox').checked;
+        let customerNumber = document.getElementById('customerNumber').value;
+        let orderType = document.getElementById('orderType').value;
+
+        if (isSpecialCustomer && customerNumber === '') {
+            alert('يرجى إدخال رقم العميل المميز');
+            return;
+        }
+
+        let initialAmount = totalAmount;
+        let discount = 0;
+
+        if (isSpecialCustomer) {
+            discount = Math.ceil(initialAmount * 0.25); // تقريب الخصم لأقرب جنيه أعلى
+            totalAmount -= discount;
+        }
+
+        let tax = Math.ceil(totalAmount * 0.12);  // تقريب الضريبة لأقرب جنيه أعلى
+        let finalAmount = totalAmount + tax;
+
+        totalSum += finalAmount;
+
+        let today = new Date().toLocaleDateString(); // الحصول على التاريخ الحالي
+        
+        let currentSequence = invoiceSequence; // استخدام الترقيم التلقائي
+        invoiceSequence++; // زيادة التسلسل للفواتير القادمة
+        localStorage.setItem('invoiceSequence', invoiceSequence); // تحديث التسلسل في Local Storage
+
+        // عرض النتائج
+        document.getElementById('result').innerHTML = `
+            <p><span class="icon">💰</span>السعر قبل الضريبة: <span>${initialAmount.toFixed(2)}</span> جنيه</p>
+            <p><span class="icon">💸</span>الخصم: <span>${discount.toFixed(2)}</span> جنيه</p>
+            <p><span class="icon">🧾</span>الضريبة: <span>${tax.toFixed(2)}</span> جنيه</p>
+            <p><span class="icon">🔢</span>السعر النهائي: <span>${finalAmount.toFixed(2)}</span> جنيه</p>
+        `;
+
+        // إضافة الصف إلى الجدول
+        let tableBody = document.getElementById('orderTableBody');
+        let newRow = tableBody.insertRow();
+        newRow.innerHTML = `
+            <td>${today}</td>
+            <td>${currentSequence}</td>
+            <td>${initialAmount.toFixed(2)}</td>
+            <td>${discount.toFixed(2)}</td>
+            <td>${tax.toFixed(2)}</td>
+            <td>${finalAmount.toFixed(2)}</td>
+            <td>${isSpecialCustomer ? customerNumber : 'لا'}</td>
+            <td>${orderType}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="deleteRow(this)">حذف</button></td>
+        `;
+        updateTotalSum();
+    }
+
+    function updateTotalSum() {
+        document.getElementById('totalSum').textContent = `${totalSum.toFixed(2)} جنيه`;
+    }
+
+    function deleteRow(button) {
+        let row = button.parentNode.parentNode;
+        let amount = parseFloat(row.cells[5].textContent);
+        totalSum -= amount;
+        row.remove();
+        updateTotalSum();
+    }
+
+    function loadTableData() {
+        // هنا يمكنك إضافة كود لتحميل البيانات من مصدر بيانات خارجي إذا لزم الأمر
+    }
+</script>
+
+</body>
+</html>
