@@ -140,11 +140,23 @@
             left: 15px;
             cursor: pointer;
         }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+        .header img {
+            border-radius: 10px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div class="header">
+        <img src="logo.png" width="150" height="150" alt="Logo">
+    </div>
     <div class="toggle-sidebar" onclick="toggleSidebar()">☰</div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">قائمة المشروبات</div>
@@ -241,7 +253,7 @@
         
     </div>
 
-    <h2>حاسبة الكاشير</h2>
+  
     <form id="cashierForm">
         <div class="form-group">
             <label for="totalAmount">المبلغ الإجمالي</label>
