@@ -3,295 +3,480 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حاسبة الكاشير المتقدمة</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>حاسبة الكاشير</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            background-color: #f0f2f5;
+            direction: rtl;
+            text-align: right;
+            margin: 20px;
+            background-color: #f5f5f5;
             font-family: 'Cairo', sans-serif;
-            padding: 20px;
         }
         .container {
-            max-width: 800px;
-            margin: auto;
+            background-color: #fff;
             padding: 30px;
-            background-color: #ffffff;
-            border-radius: 10px;
+            border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         h2 {
-            margin: 0;
-            color: #333;
-            font-size: 28px;
+            color: #007bff;
+            margin-bottom: 20px;
+            text-align: center;
             font-weight: bold;
         }
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            margin-bottom: 30px;
+        .form-group label {
+            font-size: 16px;
+            font-weight: bold;
         }
-        .header img {
-            border-radius: 10px;
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            font-size: 16px;
+            padding: 10px;
         }
         .btn-primary {
             background-color: #007bff;
             border-color: #007bff;
-            font-size: 18px;
-            padding: 10px 20px;
-        }
-        table {
-            margin-top: 20px;
+            border-radius: 8px;
             font-size: 16px;
-            overflow-x: auto;
-            display: block;
+            padding: 10px 20px;
+            transition: background-color 0.3s;
         }
-        th, td {
-            text-align: center;
-            padding: 12px;
+        .btn-primary:hover {
+            background-color: #0056b3;
         }
-        th {
-            background-color: #007bff;
-            color: #ffffff;
+        .form-check-label {
+            font-size: 16px;
+            margin-left: 10px;
+            font-weight: bold;
         }
-        td {
-            background-color: #f9f9f9;
-        }
-        /* تصميم قسم النتيجة الجديد */
-        #resultSection {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            border: 1px solid #ddd;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-        #resultSection p {
+        .invoice-summary p {
             font-size: 18px;
             margin: 10px 0;
+            color: #555;
         }
-        #resultSection p span {
+        .icon {
+            font-weight: bold;
+            margin-left: 5px;
+            color: #007bff;
+        }
+        table {
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: auto;
+            display: block;
+           
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        table th, table td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 15px;
+            font-size: 16px;
+        }
+        table th {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+        }
+        table td {
+            background-color: #f9f9f9;
+        }
+        table td button {
+            background-color: #dc3545;
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        table td button:hover {
+            background-color: #c82333;
+        }
+        #totalSum {
+            font-size: 18px;
             font-weight: bold;
             color: #007bff;
         }
-        #resultSection .icon {
-            margin-right: 8px;
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 300px;
+            background-color: #fff;
+            box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+            transform: translateX(300px);
+            transition: transform 0.3s;
+            z-index: 99999;
         }
-        #resultTitle {
-            font-size: 24px;
-            color: #333;
-            font-weight: bold;
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        .sidebar-header {
+            padding: 15px;
+            background-color: #007bff;
+            color: #fff;
             text-align: center;
-            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .sidebar-body {
+            padding: 15px;
+        }
+        .sidebar-body .form-check {
+            margin-bottom: 10px;
+        }
+        .sidebar-footer {
+            padding: 15px;
+            background-color: #f8f9fa;
+            text-align: center;
+        }
+        .toggle-sidebar {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <img src="logo.png" width="150" height="150" alt="Logo">
+    <div class="toggle-sidebar" onclick="toggleSidebar()">☰</div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">قائمة المشروبات</div>
+        <div class="sidebar-body" style="overflow-y: auto; max-height: 80vh; z-index: 999999;">
+            <div class="form-check">
+                <input type="checkbox" id="drink1" value="28" onchange="updateTotalPrice()">
+                <label for="drink1">عصير المانجو - 28 جنيه</label>
+                <input type="number" class="form-control" id="quantity1" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink2" value="28" onchange="updateTotalPrice()">
+                <label for="drink2">عصير الرمان - 28 جنيه</label>
+                <input type="number" class="form-control" id="quantity2" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink3" value="24" onchange="updateTotalPrice()">
+                <label for="drink3">عصير الجوافة - 24 جنيه</label>
+                <input type="number" class="form-control" id="quantity3" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink4" value="24" onchange="updateTotalPrice()">
+                <label for="drink4">عصير البرتقال - 24 جنيه</label>
+                <input type="number" class="form-control" id="quantity4" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink5" value="24" onchange="updateTotalPrice()">
+                <label for="drink5">عصير الفراولة - 24 جنيه</label>
+                <input type="number" class="form-control" id="quantity5" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink6" value="17" onchange="updateTotalPrice()">
+                <label for="drink6">كانز صغير - 17 جنيه</label>
+                <input type="number" class="form-control" id="quantity6" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink7" value="22" onchange="updateTotalPrice()">
+                <label for="drink7">كانز بريل - 22 جنيه</label>
+                <input type="number" class="form-control" id="quantity7" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink8" value="22" onchange="updateTotalPrice()">
+                <label for="drink8">كانز فيروز - 22 جنيه</label>
+                <input type="number" class="form-control" id="quantity8" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink9" value="25" onchange="updateTotalPrice()">
+                <label for="drink9">قهوة فرنسية - 25 جنيه</label>
+                <input type="number" class="form-control" id="quantity9" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink10" value="16" onchange="updateTotalPrice()">
+                <label for="drink10">قهوة تركية - 16 جنيه</label>
+                <input type="number" class="form-control" id="quantity10" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink11" value="15" onchange="updateTotalPrice()">
+                <label for="drink11">نسكافيه - 15 جنيه</label>
+                <input type="number" class="form-control" id="quantity11" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink12" value="15" onchange="updateTotalPrice()">
+                <label for="drink12">كوفي ميكس - 15 جنيه</label>
+                <input type="number" class="form-control" id="quantity12" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink13" value="25" onchange="updateTotalPrice()">
+                <label for="drink13">نسكافيه بالحليب - 25 جنيه</label>
+                <input type="number" class="form-control" id="quantity13" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink14" value="8" onchange="updateTotalPrice()">
+                <label for="drink14">شاي - 8 جنيه</label>
+                <input type="number" class="form-control" id="quantity14" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink15" value="13" onchange="updateTotalPrice()">
+                <label for="drink15">شاي بالنعناع - 13 جنيه</label>
+                <input type="number" class="form-control" id="quantity15" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink16" value="8" onchange="updateTotalPrice()">
+                <label for="drink16">ماء صغير - 8 جنيه</label>
+                <input type="number" class="form-control" id="quantity16" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+            <div class="form-check">
+                <input type="checkbox" id="drink17" value="12" onchange="updateTotalPrice()">
+                <label for="drink17">ماء كبير - 12 جنيه</label>
+                <input type="number" class="form-control" id="quantity17" value="0" min="0" onchange="updateTotalPrice()">
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <button class="btn btn-primary" onclick="toggleSidebar()">إغلاق</button>
+        </div>
+        
     </div>
-  
+
+    <h2>حاسبة الكاشير</h2>
     <form id="cashierForm">
-        <div class="mb-3">
-            <label for="totalAmount" class="form-label">المبلغ الإجمالي</label>
-            <input type="number" class="form-control" id="totalAmount" required>
+        <div class="form-group">
+            <label for="totalAmount">المبلغ الإجمالي</label>
+            <input type="text" class="form-control" id="totalAmount" placeholder="أدخل المبلغ الإجمالي">
         </div>
-        <div class="mb-3">
-            <label for="amountPaid" class="form-label">المبلغ المدفوع</label>
-            <input type="number" class="form-control" id="amountPaid" placeholder="أدخل المبلغ المدفوع" required>
+        <div class="form-group">
+            <label for="amountPaid">المبلغ المدفوع</label>
+            <input type="text" class="form-control" id="amountPaid" placeholder="أدخل المبلغ المدفوع">
         </div>
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="specialCustomerCheckbox">
-            <label class="form-check-label" for="specialCustomerCheckbox">
-                 عسكري ق.م
-            </label>
+        <div class="card" id="specialCustomerCard" style="cursor: pointer; z-index: 1;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-user-check mr-2"></i>
+                <input type="checkbox" class="form-check-input" id="isSpecialCustomer" style="display: none;">
+                <label class="form-check-label mb-0" for="isSpecialCustomer">عسكري</label>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="customerNumber" class="form-label">رقم العسكري ق.م</label>
-            <input type="text" class="form-control" id="customerNumber" disabled required>
+        <script>
+            document.getElementById('specialCustomerCard').addEventListener('click', function () {
+                var checkbox = document.getElementById('isSpecialCustomer');
+                checkbox.checked = !checkbox.checked;
+                this.classList.toggle('bg-primary', checkbox.checked);
+                this.classList.toggle('text-white', checkbox.checked);
+                document.getElementById('customerNumber').disabled = !checkbox.checked;
+                updateInvoiceSummary();
+            });
+        </script>
+        <div class="form-group">
+            <label for="customerNumber">الرقم العسكري</label>
+            <input type="text" class="form-control" id="customerNumber" placeholder="أدخل رقم العسكري" disabled>
         </div>
-        <div class="mb-3">
-            <label for="orderType" class="form-label">نوع الطلب</label>
-            <select class="form-select" id="orderType">
+        <div class="form-group">
+            <label for="orderType">نوع الطلب</label>
+            <select class="form-control" id="orderType" style="height: 50px;">
                 <option value="كافيه">كافيه</option>
-                <option value="مطعم" disabled>مطعم - قريبا</option>
+                <option value="مطعم" disabled>قريبا - مطعم</option>
             </select>
         </div>
-        <div class="mb-3">
-            <label for="invoiceSequence" class="form-label">تسلسل الفاتورة</label>
-            <input type="number" class="form-control" id="invoiceSequence" placeholder="أدخل التسلسل المبدئي" required>
+        <div class="form-group">
+            <label for="invoiceSequence">تسلسل الفاتورة</label>
+            <input type="text" class="form-control" id="invoiceSequence" placeholder="أدخل التسلسل الميداني">
         </div>
-        <button type="button" class="btn btn-primary" onclick="calculate()">احسب</button>
+        <button type="button" class="btn btn-primary" onclick="addInvoice()">احسب</button>
     </form>
-    
-    <div id="resultSection">
-        <h3 id="resultTitle">الفاتورة :</h3>
-        <p id="result"></p>
-    </div>
-</div>
 
-<div class="container">
-    <h3>جدول العمليات</h3>
-    <table class="table table-bordered">
+    <div class="invoice-summary mt-4" id="invoiceSummary"></div>
+
+    <table class="table mt-4">
         <thead>
-            <tr>
-                <th style="padding: 19px;">التاريخ</th>
-                <th>تسلسل الفاتورة</th>
-                <th>المبلغ قبل الضريبة</th>
-                <th>خصم</th>
-                <th>الضريبة</th>
-                <th>المبلغ النهائي</th>
-                <th>المبلغ المدفوع</th> <!-- إضافة عمود جديد للمبلغ المدفوع -->
-                <th>المبلغ المستحق</th> <!-- إضافة عمود جديد للمبلغ المستحق -->
-                <th>رقم العسكري ق.م</th>
-                <th>نوع الطلب</th>
-                <th>حذف</th> <!-- عمود جديد للحذف -->
-            </tr>
+        <tr>
+            <th>التاريخ</th>
+            <th>التسلسل</th>
+            <th>المبلغ</th>
+            <th>الخصم</th>
+            <th>الضريبة</th>
+            <th>المبلغ النهائي</th>
+            <th>المبلغ المدفوع</th>
+            <th>المبلغ المستحق</th>
+            <th>رقم العسكري</th>
+            <th>نوع الطلب</th>
+            <th>إجراءات</th>
+        </tr>
         </thead>
-        <tbody id="orderTableBody">
-            <!-- سيتم إضافة العمليات هنا -->
-        </tbody>
-        <tfoot>
-            <tr>
-                <th colspan="9">الإجمالي</th>
-                <th id="totalSum">0.00 جنيه</th>
-            </tr>
-        </tfoot>
+        <tbody id="orderTableBody"></tbody>
     </table>
+
+    <p>إجمالي المبالغ: <span id="totalSum">0 جنيه</span></p>
 </div>
 
 <script>
-    let totalSum = parseFloat(localStorage.getItem('totalSum')) || 0;
-    let invoiceSequence = parseInt(localStorage.getItem('invoiceSequence')) || 1; // الترقيم التلقائي لتسلسل الفاتورة
-
-    document.getElementById('specialCustomerCheckbox').addEventListener('change', function() {
-        const customerNumberInput = document.getElementById('customerNumber');
-        customerNumberInput.disabled = !this.checked;
-        customerNumberInput.value = ''; // Reset value when unchecked
+    document.getElementById('isSpecialCustomer').addEventListener('change', function () {
+        document.getElementById('customerNumber').disabled = !this.checked;
+        updateInvoiceSummary();
     });
 
-    window.onload = function() {
-        loadTableData();
-        document.getElementById('totalSum').innerText = `${totalSum.toFixed(2)} جنيه`;
-    };
+    document.getElementById('amountPaid').addEventListener('input', updateInvoiceSummary);
+    document.getElementById('customerNumber').addEventListener('input', updateInvoiceSummary);
+    document.getElementById('orderType').addEventListener('change', updateInvoiceSummary);
+    document.getElementById('totalAmount').addEventListener('input', updateInvoiceSummary);
 
-    function calculate() {
-        let invoiceSequenceInput = document.getElementById('invoiceSequence');
-        if (!invoiceSequenceInput.hasAttribute('readonly')) {
-            if (invoiceSequenceInput.value === '' || parseInt(invoiceSequenceInput.value) <= 0) {
-                alert('يرجى إدخال تسلسل الفاتورة المبدئي');
-                return;
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function updateTotalPrice() {
+        const checks = document.querySelectorAll('.sidebar-body .form-check');
+        let total = 0;
+        checks.forEach(check => {
+            const price = parseFloat(check.querySelector('input[type="checkbox"]').value);
+            const quantity = parseInt(check.querySelector('input[type="number"]').value) || 0;
+            if (check.querySelector('input[type="checkbox"]').checked) {
+                total += price * quantity;
             }
-            invoiceSequence = parseInt(invoiceSequenceInput.value);
-            invoiceSequenceInput.setAttribute('readonly', 'readonly'); // تعيين الحقل كـ readonly بعد الإدخال
-            localStorage.setItem('invoiceSequence', invoiceSequence); // حفظ التسلسل في Local Storage
-        }
-
-        let totalAmount = parseFloat(document.getElementById('totalAmount').value);
-        let amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0; // المبلغ المدفوع
-        let isSpecialCustomer = document.getElementById('specialCustomerCheckbox').checked;
-        let customerNumber = document.getElementById('customerNumber').value;
-        let orderType = document.getElementById('orderType').value;
-
-        if (isSpecialCustomer && customerNumber === '') {
-            alert('يرجى إدخال رقم العميل المميز');
-            return;
-        }
-
-        let initialAmount = totalAmount;
-        let discount = 0;
-
-        if (isSpecialCustomer) {
-            discount = Math.ceil(initialAmount * 0.25); // تقريب الخصم لأقرب جنيه أعلى
-            totalAmount -= discount;
-        }
-
-        let tax = Math.ceil(totalAmount * 0.12);  // تقريب الضريبة لأقرب جنيه أعلى
-        let finalAmount = totalAmount + tax;
-        let amountDue =  amountPaid - finalAmount; // المبلغ المستحق بعد خصم المدفوع
-
-        totalSum += finalAmount;
-        localStorage.setItem('totalSum', totalSum); // حفظ الإجمالي في Local Storage
-
-        let today = new Date().toLocaleDateString('ar-EG'); // استخدام تاريخ النظام باللغة العربية
-        let currentSequence = invoiceSequence++;
-
-        document.getElementById('result').innerHTML = `
-            <p><span class="icon">💰</span>السعر قبل الضريبة: <span>${initialAmount.toFixed(2)} جنيه</span></p>
-            <p><span class="icon">🎁</span>الخصم: <span>${discount.toFixed(2)} جنيه</span></p>
-            <p><span class="icon">🧾</span>الضريبة: <span>${tax.toFixed(2)} جنيه</span></p>
-            <p><span class="icon">📉</span>المبلغ النهائي: <span>${finalAmount.toFixed(2)} جنيه</span></p>
-            <p><span class="icon">💵</span>المبلغ المدفوع: <span>${amountPaid.toFixed(2)} جنيه</span></p>
-            <p><span class="icon">💸</span>المبلغ المستحق: <span>${amountDue.toFixed(2)} جنيه</span></p>
-        `;
-
-        addRowToTable(today, currentSequence, initialAmount, discount, tax, finalAmount, amountPaid, amountDue, customerNumber, orderType);
-        localStorage.setItem('invoiceSequence', invoiceSequence); // حفظ الترقيم في Local Storage
-        document.getElementById('totalSum').innerText = `${totalSum.toFixed(2)} جنيه`;
+        });
+        document.getElementById('totalAmount').value = total.toFixed(2);
+        updateInvoiceSummary();
     }
 
-    function addRowToTable(date, sequence, initialAmount, discount, tax, finalAmount, amountPaid, amountDue, customerNumber, orderType) {
-        let tableBody = document.getElementById('orderTableBody');
-        let newRow = tableBody.insertRow();
+    function updateInvoiceSummary() {
+        const totalAmount = parseFloat(document.getElementById('totalAmount').value) || 0;
+        const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
+        const isSpecialCustomer = document.getElementById('isSpecialCustomer').checked;
+        const discount = isSpecialCustomer ? (0.25 * totalAmount) : 0;
+        const tax = Math.ceil(0.12 * (totalAmount - discount)); // ضريبة 12%
 
-        newRow.innerHTML = `
-            <td>${date}</td>
-            <td>${sequence}</td>
-            <td>${initialAmount.toFixed(2)}</td>
-            <td>${discount.toFixed(2)}</td>
-            <td>${tax.toFixed(2)}</td>
-            <td>${finalAmount.toFixed(2)}</td>
+        const finalAmount = totalAmount - discount + tax;
+        const amountDue = amountPaid - finalAmount;
+
+        document.getElementById('invoiceSummary').innerHTML = `
+            <p>الخصم: ${discount.toFixed(2)} جنيه</p>
+            <p>الضريبة: ${tax.toFixed(2)} جنيه</p>
+            <p>المبلغ النهائي: ${finalAmount.toFixed(2)} جنيه</p>
+            <p>المبلغ المدفوع: ${amountPaid.toFixed(2)} جنيه</p>
+            <p>المبلغ المستحق: ${amountDue.toFixed(2)} جنيه</p>
+            <p>الرقم العسكري: ${isSpecialCustomer ? document.getElementById('customerNumber').value : 'لا'}</p>
+            <p>نوع الطلب: ${document.getElementById('orderType').value}</p>
+        `;
+    }
+
+    function addInvoice() {
+        const tableBody = document.getElementById('orderTableBody');
+        const invoiceSequence = parseInt(document.getElementById('invoiceSequence').value) || 1;
+        const totalAmount = parseFloat(document.getElementById('totalAmount').value) || 0;
+        const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
+        const isSpecialCustomer = document.getElementById('isSpecialCustomer').checked;
+        const customerNumber = isSpecialCustomer ? document.getElementById('customerNumber').value : 'لا';
+        const orderType = document.getElementById('orderType').value;
+        const now = new Date();
+        const date = now.toLocaleDateString('ar-EG');
+        const time = now.toLocaleTimeString('ar-EG');
+
+        const discount = isSpecialCustomer ? (0.25 * totalAmount).toFixed(2) : 0;
+        const tax = Math.ceil(0.12 * (totalAmount - discount)).toFixed(2);
+        const finalAmount = (totalAmount - discount + parseFloat(tax)).toFixed(2);
+        const amountDue = (amountPaid - finalAmount).toFixed(2);
+
+        const row = `<tr>
+            <td>${date} ${time}</td>
+            <td>${invoiceSequence}</td>
+            <td>${totalAmount.toFixed(2)}</td>
+            <td>${discount}</td>
+            <td>${tax}</td>
+            <td>${finalAmount}</td>
             <td>${amountPaid.toFixed(2)}</td>
-            <td>${amountDue.toFixed(2)}</td>
-            <td>${customerNumber || 'لا'}</td>
+            <td>${amountDue}</td>
+            <td>${customerNumber}</td>
             <td>${orderType}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="deleteRow(this)">حذف</button></td>
-        `;
+            <td><button onclick="removeRow(this)">حذف</button></td>
+        </tr>`;
 
-        saveTableData();
+        tableBody.innerHTML += row;
+        updateGrandTotal();
+        saveToLocalStorage();
+        incrementInvoiceSequence();
     }
 
-    function deleteRow(button) {
-        let row = button.parentNode.parentNode;
-        let finalAmount = parseFloat(row.cells[5].innerText);
-        totalSum -= finalAmount;
-        localStorage.setItem('totalSum', totalSum); // تحديث الإجمالي في Local Storage
-        document.getElementById('totalSum').innerText = `${totalSum.toFixed(2)} جنيه`;
-        row.remove();
-        saveTableData();
+    function removeRow(button) {
+        button.closest('tr').remove();
+        updateGrandTotal();
+        saveToLocalStorage();
     }
 
-    function saveTableData() {
-        let tableData = [];
-        let rows = document.querySelectorAll('#orderTableBody tr');
+    function updateGrandTotal() {
+        const rows = document.querySelectorAll('#orderTableBody tr');
+        let grandTotal = 0;
         rows.forEach(row => {
-            let rowData = {};
-            rowData.date = row.cells[0].innerText;
-            rowData.sequence = row.cells[1].innerText;
-            rowData.initialAmount = row.cells[2].innerText;
-            rowData.discount = row.cells[3].innerText;
-            rowData.tax = row.cells[4].innerText;
-            rowData.finalAmount = row.cells[5].innerText;
-            rowData.amountPaid = row.cells[6].innerText;
-            rowData.amountDue = row.cells[7].innerText;
-            rowData.customerNumber = row.cells[8].innerText;
-            rowData.orderType = row.cells[9].innerText;
-            tableData.push(rowData);
+            const finalAmount = parseFloat(row.cells[5].textContent);
+            grandTotal += finalAmount;
         });
-        localStorage.setItem('tableData', JSON.stringify(tableData));
+        document.getElementById('totalSum').textContent = grandTotal.toFixed(2) + ' جنيه';
     }
 
-    function loadTableData() {
-        let tableData = JSON.parse(localStorage.getItem('tableData')) || [];
-        tableData.forEach(data => {
-            addRowToTable(data.date, data.sequence, parseFloat(data.initialAmount), parseFloat(data.discount), parseFloat(data.tax), parseFloat(data.finalAmount), parseFloat(data.amountPaid), parseFloat(data.amountDue), data.customerNumber, data.orderType);
+    function saveToLocalStorage() {
+        const tableData = [];
+        const rows = document.querySelectorAll('#orderTableBody tr');
+        rows.forEach(row => {
+            tableData.push({
+                date: row.cells[0].textContent,
+                sequence: row.cells[1].textContent,
+                totalAmount: row.cells[2].textContent,
+                discount: row.cells[3].textContent,
+                tax: row.cells[4].textContent,
+                finalAmount: row.cells[5].textContent,
+                amountPaid: row.cells[6].textContent,
+                amountDue: row.cells[7].textContent,
+                customerNumber: row.cells[8].textContent,
+                orderType: row.cells[9].textContent,
+            });
         });
+        localStorage.setItem('invoiceData', JSON.stringify(tableData));
     }
+
+    function loadFromLocalStorage() {
+        const savedData = JSON.parse(localStorage.getItem('invoiceData'));
+        if (savedData) {
+            savedData.forEach(data => {
+                const row = `<tr>
+                    <td>${data.date}</td>
+                    <td>${data.sequence}</td>
+                    <td>${data.totalAmount}</td>
+                    <td>${data.discount}</td>
+                    <td>${data.tax}</td>
+                    <td>${data.finalAmount}</td>
+                    <td>${data.amountPaid}</td>
+                    <td>${data.amountDue}</td>
+                    <td>${data.customerNumber}</td>
+                    <td>${data.orderType}</td>
+                    <td><button onclick="removeRow(this)">حذف</button></td>
+                </tr>`;
+                document.getElementById('orderTableBody').innerHTML += row;
+            });
+            updateGrandTotal();
+        }
+    }
+
+    function incrementInvoiceSequence() {
+        let sequence = parseInt(document.getElementById('invoiceSequence').value) || 1;
+        sequence += 1;
+        document.getElementById('invoiceSequence').value = sequence;
+        localStorage.setItem('lastInvoiceSequence', sequence);
+    }
+
+    function loadLastInvoiceSequence() {
+        const lastSequence = localStorage.getItem('lastInvoiceSequence');
+        if (lastSequence) {
+            document.getElementById('invoiceSequence').value = lastSequence;
+        } else {
+            document.getElementById('invoiceSequence').value = 1;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadFromLocalStorage();
+        loadLastInvoiceSequence();
+    });
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
